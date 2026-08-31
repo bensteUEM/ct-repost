@@ -1,5 +1,4 @@
 /* This module includes everything related to the filter options */
-import { getWritebleServicegroupIds } from "./permissions";
 import { getFilters, setFilters, updateFilters } from "./persistance";
 import type { Calendar, Service, ServiceGroup } from "./utils/ct-types";
 import { churchtoolsClient } from "@churchtools/churchtools-client";
@@ -15,9 +14,7 @@ export async function resetFilterOptions() {
         // this set of defaults only applies to ELKW1610.KRZ.TOOLS - but can be overwritten using save
         const defaultFilter = {
             calendars: [2],
-            services: [6, 69, 72],
             days: 90,
-            minServicesCount: 5,
         };
         setFilters(defaultFilter);
         selectedFilters = defaultFilter;
@@ -27,9 +24,7 @@ export async function resetFilterOptions() {
     }
 
     refreshAvailableCalendars(selectedFilters?.calendars ?? []);
-    refreshAvailableServices(selectedFilters?.services ?? []);
     initDateOptions(selectedFilters?.days ?? 90);
-    initMinServicesOptions(selectedFilters?.minServicesCount ?? 5);
 }
 
 /**
@@ -42,12 +37,10 @@ export async function saveFilterOptions(document: Document) {
 
     const storeableFilters = {
         calendars: selectedFilters.calendars,
-        services: selectedFilters.services,
         days:
             (selectedFilters.toDate.getTime() -
                 selectedFilters.fromDate.getTime()) /
             (1000 * 60 * 60 * 24), //convert from miliseconds
-        minServicesCount: selectedFilters.minServicesCount,
     };
 
     if (await getFilters()) {
@@ -63,10 +56,8 @@ export async function saveFilterOptions(document: Document) {
  */
 export async function parseSelectedFilterOptions(document: Document): Promise<{
     calendars: number[];
-    services: number[];
     fromDate: Date;
     toDate: Date;
-    minServicesCount: number;
 }> {
     /* retrieve filter option selectedCalendars from HTML form */
     const selectCalendars = document.getElementById(
@@ -77,21 +68,6 @@ export async function parseSelectedFilterOptions(document: Document): Promise<{
     );
     console.log("Selected calendars:", selectedCalendars);
 
-    /* retrieve filter option selectedServices from HTML form */
-    const selectServices = document.getElementById(
-        "selectedServices",
-    ) as HTMLSelectElement;
-    const selectedServiceIds: number[] = Array.from(
-        selectServices.selectedOptions,
-    ).map((option) => Number(option.value));
-
-    console.log("Selected services:", selectedServiceIds);
-    //Filter options based on allowed servicegroups
-
-    const allowedServiceGroupIds = await getWritebleServicegroupIds();
-    console.log("Allowed service group IDs:", allowedServiceGroupIds);
-    // TODO@bensteUEM: https://github.com/bensteUEM/ct-events-load/issues/1
-
     /* retrieve filter options from HTML form */
     const inputFrom = document.getElementById("fromDate") as HTMLInputElement;
     const fromDate = new Date(inputFrom.value);
@@ -101,19 +77,10 @@ export async function parseSelectedFilterOptions(document: Document): Promise<{
 
     console.log("Selected date range:", fromDate, toDate);
 
-    const minServicesCountInput = document.getElementById(
-        "minServicesCount",
-    ) as HTMLInputElement;
-    const minServicesCount = Number(minServicesCountInput.value);
-
-    console.log("Selected minServicesCount:", minServicesCount);
-
     const result = {
         calendars: selectedCalendars,
-        services: selectedServiceIds,
         fromDate: fromDate,
         toDate: toDate,
-        minServicesCount: minServicesCount,
     };
     return result;
 }
@@ -153,81 +120,6 @@ async function refreshAvailableCalendars(selectedCalendars: number[] = []) {
 }
 
 /**
- * Retrieve list of available services by servicegroup and populate the filter including default selections
- *
- * @param selectedServices - list of ids that should be selected upon init
- * @returns void
- */
-async function refreshAvailableServices(selectedServices: number[] = []) {
-    console.log(
-        "Refreshing available services for filter options with selected services:",
-        selectedServices,
-    );
-
-    const allServiceGroups: ServiceGroup[] =
-        await churchtoolsClient.get("/servicegroups");
-
-    const availableServicegroups = Object.fromEntries(
-        allServiceGroups
-            .filter((group) => group.id != null) // skip undefined IDs
-            .map((group) => [group.id, group.name]),
-    ) as Record<number, string>;
-    console.log("Available serviceGroups:", availableServicegroups);
-
-    const allowedServiceGroupIds = await getWritebleServicegroupIds();
-
-    const allServices: Service[] = await churchtoolsClient.get("/services");
-    console.log("Available services:", allServices);
-
-    const availableServicesByCategory: Record<
-        number,
-        { id: number; name: string }[]
-    > = allServices.reduce<Record<number, { id: number; name: string }[]>>(
-        (acc, service) => {
-            const groupId = service.serviceGroupId;
-            if (groupId == null) return acc; // skip if undefined or null
-            if (!allowedServiceGroupIds.includes(service.serviceGroupId)) {
-                return acc;
-            }
-            if (!acc[groupId]) acc[groupId] = [];
-            acc[groupId].push({ id: service.id, name: service.nameTranslated });
-            return acc;
-        },
-        {},
-    );
-
-    console.log(
-        "Available ServiceGroups with Services:",
-        availableServicesByCategory,
-    );
-
-    const selectElement = document.getElementById(
-        "selectedServices",
-    ) as HTMLSelectElement;
-
-    // Remove all existing children
-    selectElement.innerHTML = "";
-
-    for (const categoryId in availableServicesByCategory) {
-        const optgroup = document.createElement("optgroup");
-        optgroup.label = availableServicegroups[Number(categoryId)] ?? "";
-
-        availableServicesByCategory[Number(categoryId)].forEach((service) => {
-            const option = document.createElement("option");
-            option.value = service.id.toString();
-            option.textContent = service.name;
-
-            if (selectedServices.includes(service.id)) {
-                option.selected = true;
-            }
-
-            optgroup.appendChild(option);
-        });
-        selectElement.appendChild(optgroup);
-    }
-}
-
-/**
  * Initialize date options with default values based on NOW() and defaultTimeFrameMonths
  *
  * @param days - number of days for default timeframe
@@ -255,13 +147,6 @@ function initDateOptions(days = 90) {
     toDateInput.value = toDate.toISOString().slice(0, 10);
 }
 
-function initMinServicesOptions(selectedFilters = 5) {
-    const minServicesCountInput = document.getElementById(
-        "minServicesCount",
-    ) as HTMLInputElement;
-
-    minServicesCountInput.value = selectedFilters.toString();
-}
 /* HTML used to display filter options 
 content needs to be populated dynamically
 */
@@ -341,58 +226,18 @@ export function createFilterHTML(): HTMLFormElement {
     toRow.appendChild(toLabel);
     toRow.appendChild(toInput);
 
-    // --- Min Services Count ---
-    const minRow = document.createElement("div");
-    minRow.className = "flex items-center gap-2";
-    const minLabel = document.createElement("label");
-    minLabel.htmlFor = "minServicesCount";
-    minLabel.className = "text-body-s-emphasized w-32 shrink-0";
-    minLabel.textContent = "Mindestens # Dienste";
-    const minInput = document.createElement("input");
-    minInput.type = "number";
-    minInput.id = "minServicesCount";
-    minInput.name = "minServicesCount";
-    minInput.className = "flex-1";
-    minInput.value = "0"; // init value
-    minRow.appendChild(minLabel);
-    minRow.appendChild(minInput);
-
     // --- Combine
     dateCol.appendChild(fromRow);
     dateCol.appendChild(toRow);
-    dateCol.appendChild(minRow);
 
     // --- Append to parent row/container ---
     row.appendChild(dateCol);
-
-    // --- Services select column ---
-    const serviceCol = document.createElement("div");
-    serviceCol.className = "flex flex-col px-4 py-3 gap-2";
-
-    // Label above the select
-    const serviceLabel = document.createElement("label");
-    serviceLabel.htmlFor = "selectedServices";
-    serviceLabel.className = "text-body-s-emphasized";
-    serviceLabel.textContent = "Dienste";
-
-    // Multi-select
-    const serviceSelect = document.createElement("select");
-    serviceSelect.className = "form-select flex-1";
-    serviceSelect.id = "selectedServices";
-    serviceSelect.name = "selectedServices";
-    serviceSelect.multiple = true;
-    serviceSelect.size = 10;
-
-    // Combine
-    serviceCol.appendChild(serviceLabel);
-    serviceCol.appendChild(serviceSelect);
-    row.appendChild(serviceCol);
 
     // --- Button group ---
     const btnGroup = document.createElement("div");
     btnGroup.className = "flex gap-2 mt-2 justify-center";
 
-    // --- Refresh Chart button ---
+    // --- Refresh button ---
     const btnRefresh = document.createElement("button");
     btnRefresh.type = "button";
     btnRefresh.id = "submitFilterBtn";
@@ -400,7 +245,7 @@ export function createFilterHTML(): HTMLFormElement {
         "c-button c-button__S c-button__primary rounded-sm text-body-m-emphasized " +
         "gap-2 justify-center px-4 py-2 " +
         "text-white bg-green-b-bright ";
-    btnRefresh.textContent = "Refresh Chart";
+    btnRefresh.textContent = "Refresh";
 
     // --- Save Filter button ---
     const btnSave = document.createElement("button");

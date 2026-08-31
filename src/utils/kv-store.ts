@@ -47,7 +47,7 @@ export async function getModule(
 export async function getOrCreateModule(
     extensionkey: string,
     name: string,
-    description: string
+    description: string,
 ): Promise<CustomModule> {
     try {
         return await getModule(extensionkey);
@@ -59,7 +59,7 @@ export async function getOrCreateModule(
 async function createModule(
     extensionkey: string,
     name: string,
-    description: string
+    description: string,
 ): Promise<CustomModule> {
     const createData: CustomModuleCreate = {
         name: name,
@@ -69,8 +69,8 @@ async function createModule(
     };
 
     const newModule = await churchtoolsClient.post<CustomModule>(
-        '/custommodules',
-        createData
+        "/custommodules",
+        createData,
     );
 
     console.log(`Created new module for ${extensionkey}:`, newModule);
