@@ -5,6 +5,7 @@ ChurchTools extensions can store persistent data using the ChurchTools key-value
 ## Overview
 
 The key-value store allows extensions to persist data in ChurchTools, such as:
+
 - User settings and preferences
 - Configuration data
 - Application state
@@ -29,6 +30,7 @@ In **development mode**, the module can be automatically created using `getOrCre
 ### Data Categories
 
 **Categories** organize related data within a module. For example:
+
 - `settings` - User preferences and configuration
 - `cache` - Cached API responses
 - `user-data` - User-specific data
@@ -46,10 +48,10 @@ In **development mode**, the module can be automatically created using `getOrCre
 Retrieves the extension module.
 
 ```typescript
-import { getModule } from '../utils/kv-store';
+import { getModule } from "../utils/kv-store";
 
 const module = await getModule(); // Uses VITE_KEY from .env
-const module = await getModule('my-extension'); // Explicit key
+const module = await getModule("my-extension"); // Explicit key
 ```
 
 #### `getOrCreateModule(extensionKey: string, name: string, description: string): Promise<CustomModule>`
@@ -57,12 +59,12 @@ const module = await getModule('my-extension'); // Explicit key
 Gets the module or creates it if it doesn't exist (development mode only).
 
 ```typescript
-import { getOrCreateModule } from '../utils/kv-store';
+import { getOrCreateModule } from "../utils/kv-store";
 
 const module = await getOrCreateModule(
-    'my-extension',
-    'My Extension',
-    'A ChurchTools extension'
+    "my-extension",
+    "My Extension",
+    "A ChurchTools extension",
 );
 ```
 
@@ -75,7 +77,7 @@ const module = await getOrCreateModule(
 Retrieves all categories for a module with automatic JSON parsing.
 
 ```typescript
-import { getCustomDataCategories } from '../utils/kv-store';
+import { getCustomDataCategories } from "../utils/kv-store";
 
 interface SettingsCategory {
     theme: string;
@@ -90,11 +92,11 @@ const categories = await getCustomDataCategories<SettingsCategory>();
 Retrieves a specific category by its short name.
 
 ```typescript
-import { getCustomDataCategory } from '../utils/kv-store';
+import { getCustomDataCategory } from "../utils/kv-store";
 
-const settings = await getCustomDataCategory<object>('settings');
+const settings = await getCustomDataCategory<object>("settings");
 if (settings) {
-    console.log('Settings category found:', settings);
+    console.log("Settings category found:", settings);
 }
 ```
 
@@ -103,13 +105,13 @@ if (settings) {
 Creates a new data category.
 
 ```typescript
-import { createCustomDataCategory } from '../utils/kv-store';
+import { createCustomDataCategory } from "../utils/kv-store";
 
 const category = await createCustomDataCategory({
     customModuleId: moduleId,
-    name: 'Settings',
-    shorty: 'settings',
-    description: 'User preferences and configuration',
+    name: "Settings",
+    shorty: "settings",
+    description: "User preferences and configuration",
 });
 ```
 
@@ -118,11 +120,11 @@ const category = await createCustomDataCategory({
 Updates an existing category.
 
 ```typescript
-import { updateCustomDataCategory } from '../utils/kv-store';
+import { updateCustomDataCategory } from "../utils/kv-store";
 
 await updateCustomDataCategory(categoryId, {
-    name: 'Updated Settings',
-    description: 'New description',
+    name: "Updated Settings",
+    description: "New description",
 });
 ```
 
@@ -131,7 +133,7 @@ await updateCustomDataCategory(categoryId, {
 Deletes a category and all its values.
 
 ```typescript
-import { deleteCustomDataCategory } from '../utils/kv-store';
+import { deleteCustomDataCategory } from "../utils/kv-store";
 
 await deleteCustomDataCategory(categoryId);
 ```
@@ -143,7 +145,7 @@ await deleteCustomDataCategory(categoryId);
 Retrieves all values in a category with automatic JSON parsing.
 
 ```typescript
-import { getCustomDataValues } from '../utils/kv-store';
+import { getCustomDataValues } from "../utils/kv-store";
 
 interface UserSettings {
     key: string;
@@ -151,7 +153,7 @@ interface UserSettings {
 }
 
 const values = await getCustomDataValues<UserSettings>(categoryId);
-const bgColor = values.find(v => v.key === 'backgroundColor');
+const bgColor = values.find((v) => v.key === "backgroundColor");
 ```
 
 #### `createCustomDataValue(payload: CustomModuleDataValueCreate, moduleId?: number): Promise<void>`
@@ -159,11 +161,11 @@ const bgColor = values.find(v => v.key === 'backgroundColor');
 Creates a new value in a category.
 
 ```typescript
-import { createCustomDataValue } from '../utils/kv-store';
+import { createCustomDataValue } from "../utils/kv-store";
 
 await createCustomDataValue({
     dataCategoryId: categoryId,
-    value: JSON.stringify({ key: 'theme', value: 'dark' }),
+    value: JSON.stringify({ key: "theme", value: "dark" }),
 });
 ```
 
@@ -172,10 +174,10 @@ await createCustomDataValue({
 Updates an existing value.
 
 ```typescript
-import { updateCustomDataValue } from '../utils/kv-store';
+import { updateCustomDataValue } from "../utils/kv-store";
 
 await updateCustomDataValue(categoryId, valueId, {
-    value: JSON.stringify({ key: 'theme', value: 'light' }),
+    value: JSON.stringify({ key: "theme", value: "light" }),
 });
 ```
 
@@ -184,7 +186,7 @@ await updateCustomDataValue(categoryId, valueId, {
 Deletes a value.
 
 ```typescript
-import { deleteCustomDataValue } from '../utils/kv-store';
+import { deleteCustomDataValue } from "../utils/kv-store";
 
 await deleteCustomDataValue(categoryId, valueId);
 ```
@@ -201,7 +203,7 @@ import {
     getCustomDataValues,
     createCustomDataValue,
     updateCustomDataValue,
-} from '../utils/kv-store';
+} from "../utils/kv-store";
 
 interface Setting {
     key: string;
@@ -209,34 +211,45 @@ interface Setting {
 }
 
 // Initialize
-const module = await getOrCreateModule(KEY, 'My Extension', 'Description');
+const module = await getOrCreateModule(KEY, "My Extension", "Description");
 
 // Get or create settings category
-let category = await getCustomDataCategory<object>('settings');
+let category = await getCustomDataCategory<object>("settings");
 if (!category) {
-    await createCustomDataCategory({
-        customModuleId: module.id,
-        name: 'Settings',
-        shorty: 'settings',
-        description: 'Extension settings',
-    }, module.id);
-    category = await getCustomDataCategory<object>('settings');
+    await createCustomDataCategory(
+        {
+            customModuleId: module.id,
+            name: "Settings",
+            shorty: "settings",
+            description: "Extension settings",
+        },
+        module.id,
+    );
+    category = await getCustomDataCategory<object>("settings");
 }
 
 // Load settings
 const values = await getCustomDataValues<Setting>(category.id, module.id);
-const theme = values.find(v => v.key === 'theme');
+const theme = values.find((v) => v.key === "theme");
 
 // Save setting
 if (theme) {
-    await updateCustomDataValue(category.id, theme.id, {
-        value: JSON.stringify({ key: 'theme', value: 'dark' }),
-    }, module.id);
+    await updateCustomDataValue(
+        category.id,
+        theme.id,
+        {
+            value: JSON.stringify({ key: "theme", value: "dark" }),
+        },
+        module.id,
+    );
 } else {
-    await createCustomDataValue({
-        dataCategoryId: category.id,
-        value: JSON.stringify({ key: 'theme', value: 'dark' }),
-    }, module.id);
+    await createCustomDataValue(
+        {
+            dataCategoryId: category.id,
+            value: JSON.stringify({ key: "theme", value: "dark" }),
+        },
+        module.id,
+    );
 }
 ```
 
@@ -256,25 +269,28 @@ interface SettingValue {
 
 async function loadSettings(): Promise<ExtensionSettings> {
     const module = await getModule();
-    const category = await getCustomDataCategory<object>('settings');
+    const category = await getCustomDataCategory<object>("settings");
 
     if (!category) {
         return {
-            backgroundColor: '#ffffff',
+            backgroundColor: "#ffffff",
             fontSize: 14,
             enabled: true,
         };
     }
 
-    const values = await getCustomDataValues<SettingValue>(category.id, module.id);
+    const values = await getCustomDataValues<SettingValue>(
+        category.id,
+        module.id,
+    );
 
     const settings: ExtensionSettings = {
-        backgroundColor: '#ffffff',
+        backgroundColor: "#ffffff",
         fontSize: 14,
         enabled: true,
     };
 
-    values.forEach(v => {
+    values.forEach((v) => {
         settings[v.key] = v.value;
     });
 
@@ -283,29 +299,40 @@ async function loadSettings(): Promise<ExtensionSettings> {
 
 async function saveSetting<K extends keyof ExtensionSettings>(
     key: K,
-    value: ExtensionSettings[K]
+    value: ExtensionSettings[K],
 ): Promise<void> {
     const module = await getModule();
-    const category = await getCustomDataCategory<object>('settings');
+    const category = await getCustomDataCategory<object>("settings");
 
     if (!category) {
-        throw new Error('Settings category not found');
+        throw new Error("Settings category not found");
     }
 
-    const values = await getCustomDataValues<SettingValue>(category.id, module.id);
-    const existing = values.find(v => v.key === key);
+    const values = await getCustomDataValues<SettingValue>(
+        category.id,
+        module.id,
+    );
+    const existing = values.find((v) => v.key === key);
 
     const valueData = JSON.stringify({ key, value });
 
     if (existing) {
-        await updateCustomDataValue(category.id, existing.id, {
-            value: valueData,
-        }, module.id);
+        await updateCustomDataValue(
+            category.id,
+            existing.id,
+            {
+                value: valueData,
+            },
+            module.id,
+        );
     } else {
-        await createCustomDataValue({
-            dataCategoryId: category.id,
-            value: valueData,
-        }, module.id);
+        await createCustomDataValue(
+            {
+                dataCategoryId: category.id,
+                value: valueData,
+            },
+            module.id,
+        );
     }
 }
 ```
@@ -322,12 +349,15 @@ interface CacheEntry {
 
 async function getCachedData<T>(key: string): Promise<T | null> {
     const module = await getModule();
-    const category = await getCustomDataCategory<object>('cache');
+    const category = await getCustomDataCategory<object>("cache");
 
     if (!category) return null;
 
-    const values = await getCustomDataValues<CacheEntry>(category.id, module.id);
-    const entry = values.find(v => v.key === key);
+    const values = await getCustomDataValues<CacheEntry>(
+        category.id,
+        module.id,
+    );
+    const entry = values.find((v) => v.key === key);
 
     if (!entry) return null;
 
@@ -342,22 +372,32 @@ async function getCachedData<T>(key: string): Promise<T | null> {
     return entry.value as T;
 }
 
-async function setCachedData<T>(key: string, value: T, ttl: number = 3600): Promise<void> {
+async function setCachedData<T>(
+    key: string,
+    value: T,
+    ttl: number = 3600,
+): Promise<void> {
     const module = await getModule();
-    let category = await getCustomDataCategory<object>('cache');
+    let category = await getCustomDataCategory<object>("cache");
 
     if (!category) {
-        await createCustomDataCategory({
-            customModuleId: module.id,
-            name: 'Cache',
-            shorty: 'cache',
-            description: 'Cached data',
-        }, module.id);
-        category = await getCustomDataCategory<object>('cache');
+        await createCustomDataCategory(
+            {
+                customModuleId: module.id,
+                name: "Cache",
+                shorty: "cache",
+                description: "Cached data",
+            },
+            module.id,
+        );
+        category = await getCustomDataCategory<object>("cache");
     }
 
-    const values = await getCustomDataValues<CacheEntry>(category!.id, module.id);
-    const existing = values.find(v => v.key === key);
+    const values = await getCustomDataValues<CacheEntry>(
+        category!.id,
+        module.id,
+    );
+    const existing = values.find((v) => v.key === key);
 
     const cacheEntry: CacheEntry = {
         key,
@@ -369,14 +409,22 @@ async function setCachedData<T>(key: string, value: T, ttl: number = 3600): Prom
     const valueData = JSON.stringify(cacheEntry);
 
     if (existing) {
-        await updateCustomDataValue(category!.id, existing.id, {
-            value: valueData,
-        }, module.id);
+        await updateCustomDataValue(
+            category!.id,
+            existing.id,
+            {
+                value: valueData,
+            },
+            module.id,
+        );
     } else {
-        await createCustomDataValue({
-            dataCategoryId: category!.id,
-            value: valueData,
-        }, module.id);
+        await createCustomDataValue(
+            {
+                dataCategoryId: category!.id,
+                value: valueData,
+            },
+            module.id,
+        );
     }
 }
 ```
@@ -389,7 +437,7 @@ Define interfaces for your stored data:
 
 ```typescript
 interface UserPreferences {
-    theme: 'light' | 'dark';
+    theme: "light" | "dark";
     language: string;
     notifications: boolean;
 }
@@ -402,16 +450,16 @@ const prefs = await getCustomDataValues<UserPreferences>(categoryId);
 Always provide fallback values:
 
 ```typescript
-let backgroundColor = '#ffffff'; // Default
+let backgroundColor = "#ffffff"; // Default
 
 try {
     const values = await getCustomDataValues<Setting>(categoryId);
-    const bgSetting = values.find(v => v.key === 'backgroundColor');
+    const bgSetting = values.find((v) => v.key === "backgroundColor");
     if (bgSetting) {
         backgroundColor = bgSetting.value;
     }
 } catch (error) {
-    console.log('Using default background color');
+    console.log("Using default background color");
 }
 ```
 
@@ -419,15 +467,15 @@ try {
 
 ```typescript
 // Good
-'settings'
-'user-preferences'
-'cache'
-'sync-status'
+"settings";
+"user-preferences";
+"cache";
+"sync-status";
 
 // Bad
-'data'
-'stuff'
-'misc'
+"data";
+"stuff";
+"misc";
 ```
 
 ### 4. Keep Values Small
@@ -438,11 +486,11 @@ Store only necessary data. Large objects should be split into multiple values:
 // Good: Split large data
 await createCustomDataValue({
     dataCategoryId: categoryId,
-    value: JSON.stringify({ key: 'profile', value: userProfile }),
+    value: JSON.stringify({ key: "profile", value: userProfile }),
 });
 await createCustomDataValue({
     dataCategoryId: categoryId,
-    value: JSON.stringify({ key: 'preferences', value: userPrefs }),
+    value: JSON.stringify({ key: "preferences", value: userPrefs }),
 });
 
 // Bad: One huge value
@@ -459,11 +507,14 @@ Implement cleanup for expired or unused data:
 ```typescript
 async function cleanupExpiredCache(): Promise<void> {
     const module = await getModule();
-    const category = await getCustomDataCategory<object>('cache');
+    const category = await getCustomDataCategory<object>("cache");
 
     if (!category) return;
 
-    const values = await getCustomDataValues<CacheEntry>(category.id, module.id);
+    const values = await getCustomDataValues<CacheEntry>(
+        category.id,
+        module.id,
+    );
     const now = Date.now();
 
     for (const entry of values) {
@@ -482,16 +533,19 @@ Always wrap KV store operations in try-catch:
 async function loadSettings() {
     try {
         const module = await getModule();
-        const category = await getCustomDataCategory<object>('settings');
+        const category = await getCustomDataCategory<object>("settings");
 
         if (!category) {
             return defaultSettings;
         }
 
-        const values = await getCustomDataValues<Setting>(category.id, module.id);
+        const values = await getCustomDataValues<Setting>(
+            category.id,
+            module.id,
+        );
         return parseSettings(values);
     } catch (error) {
-        console.error('Failed to load settings:', error);
+        console.error("Failed to load settings:", error);
         return defaultSettings;
     }
 }
@@ -506,8 +560,8 @@ In development, use `getOrCreateModule()` to automatically create the module:
 ```typescript
 const module = await getOrCreateModule(
     KEY,
-    'My Extension',
-    'Extension description'
+    "My Extension",
+    "Extension description",
 );
 ```
 

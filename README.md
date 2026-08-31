@@ -1,40 +1,10 @@
-# CT Events Load Extension
+# CT Repost Extension
 
-This project visualizes event load for services.
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (version compatible with the project)
-- npm or yarn
-
-### Installation
-
-1. Clone the repository
-2. Install dependencies:
-    ```bash
-    npm install
-    ```
-
-### Optional: Using Dev Container
-
-This project includes a dev container configuration. If you use VS Code with the "Dev Containers" extension, you can:
-
-1. Clone the repository
-2. Open it in VS Code
-3. Click the Remote Indicator in the bottom-left corner of VS Code status bar
-4. Select "Reopen in Container"
-
-The container includes the tools mentioned in the prerequisites pre-installed and also runs `npm install` on startup.
-
-## Configuration
-
-Copy `.env-example` to `.env` and fill in your data.
-
-In the `.env` file, configure the necessary constants for your project. This file is included in `.gitignore` to prevent sensitive data from being committed to version control.
+This Extension provides quick access for reposting existing content like calendar events to churchtools Beiträge
 
 ## Development and Deployment
+
+make sure you have an .env file with VITE_BASE_URL and VITE_KEY
 
 ### Development Server
 

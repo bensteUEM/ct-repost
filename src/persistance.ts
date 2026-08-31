@@ -17,9 +17,7 @@ export interface FilterValueData {
     userId: string | number;
     selected: {
         calendars: number[];
-        services: number[];
         days: number;
-        minServicesCount: number;
     };
 }
 
@@ -47,16 +45,9 @@ export async function resetStoredCategories(): Promise<boolean> {
                     type: "object",
                     properties: {
                         calendars: { type: "array", items: { type: "number" } },
-                        services: { type: "array", items: { type: "number" } },
                         days: { type: "number" },
-                        minServicesCount: { type: "number" },
                     },
-                    required: [
-                        "calendars",
-                        "services",
-                        "days",
-                        "minServicesCount",
-                    ],
+                    required: ["calendars", "days"],
                 },
             },
         },
@@ -82,9 +73,7 @@ export async function resetStoredCategories(): Promise<boolean> {
 export async function setFilters(
     selected: {
         calendars: number[];
-        services: number[];
         days: number;
-        minServicesCount: number;
     },
     userId?: number,
 ) {
@@ -116,9 +105,7 @@ export async function setFilters(
 export async function updateFilters(
     selected: {
         calendars: number[];
-        services: number[];
         days: number;
-        minServicesCount: number;
     },
     userId?: number,
 ) {
@@ -165,9 +152,7 @@ export async function updateFilters(
 /* Retrieve filter selections for a user */
 export async function getFilters(userId?: number): Promise<{
     calendars: number[];
-    services: number[];
     days: number;
-    minServicesCount: number;
 } | null> {
     if (!userId) {
         const user = await churchtoolsClient.get<{ id: number }>(`/whoami`);

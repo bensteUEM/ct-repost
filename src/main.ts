@@ -1,18 +1,12 @@
-import type { Person, Event, Service } from "./utils/ct-types";
-import { churchtoolsClient } from "@churchtools/churchtools-client";
-import { countServicesPerPerson, cummulativePersonTime } from "./math/counts";
-
-import { createChartsHTML, getCTChartColors } from "./charts/charts.ts";
-import { renderStackedChart } from "./charts/stackedchart";
-import { renderLineChart } from "./charts/linechart";
-
 import {
     createFilterHTML,
+    parseSelectedFilterOptions,
     resetFilterOptions,
     saveFilterOptions,
-    parseSelectedFilterOptions,
 } from "./filters";
-import { updateEventListHTML } from "./eventlist";
+import type { Person } from "./utils/ct-types";
+import { churchtoolsClient } from "@churchtools/churchtools-client";
+
 // only import reset.css in development mode
 if (import.meta.env.MODE === "development") {
     //import("./utils/reset.css");
@@ -29,6 +23,7 @@ churchtoolsClient.setBaseUrl(baseUrl);
 
 const username = import.meta.env.VITE_USERNAME;
 const password = import.meta.env.VITE_PASSWORD;
+
 if (import.meta.env.MODE === "development" && username && password) {
     await churchtoolsClient.post("/login", { username, password });
 }
@@ -40,112 +35,6 @@ export { KEY };
 
 const user = await churchtoolsClient.get<Person>(`/whoami`);
 
-/** Fetch events in relevant timeframe from ChurchTools
- * @param relevantCalendars - list of calendar ids to filter
- * @param fromDate - start date to filter events
- * @param toDate - end date to filter events
- * @returns list of filtered events
- */
-async function getEvents(
-    relevantCalendars: number[],
-    fromDate: Date = new Date(),
-    toDate: Date = new Date(new Date().setMonth(new Date().getMonth() + 6)),
-): Promise<Event[]> {
-    console.log("Fetching events for calendars:", relevantCalendars);
-    // Fetch all events
-    const allEvents: Event[] = await churchtoolsClient.get("/events", {
-        from: fromDate.toISOString().split("T")[0],
-        to: toDate.toISOString().split("T")[0],
-        include: "eventServices",
-    });
-
-    // Filter calendar and daterange sort by startDate j
-    const calendarEvents = allEvents.filter((event) => {
-        if (!event.startDate) return;
-        const eventDate = new Date(event.startDate);
-        return (
-            relevantCalendars.some(
-                // @ts-expect-error TS2339
-                (id) => id == event?.calendar?.domainIdentifier,
-            ) &&
-            eventDate >= fromDate &&
-            eventDate <= toDate
-        );
-    });
-
-    console.log("Events:", calendarEvents);
-
-    return calendarEvents;
-}
-
-/**
- * Fetch fetchServicesDict
- *
- * @returns dict of serviceId and ServiceObject
- */ async function getServicesDict(): Promise<Record<number, Service>> {
-    const services: Service[] = await churchtoolsClient.get("/services");
-    const servicesDict = Object.fromEntries(
-        services
-            .filter((service) => service.id != null)
-            .map((service) => [service.id!, service]),
-    ) as Record<number, Service>;
-    return servicesDict;
-}
-
-/**
- * Wrapper to apply new filter options
- * @returns void
- */
-async function submitFilterOptions(document: Document = window.document) {
-    /* retrieve filter option selectedCalendars from HTML form */
-    const selectedFilters = await parseSelectedFilterOptions(document);
-
-    // data gathering
-    const events = await getEvents(
-        selectedFilters.calendars,
-        selectedFilters.fromDate,
-        selectedFilters.toDate,
-    );
-    const servicesDict = await getServicesDict();
-    //   console.log(servicesDict);
-    //   printServices(events, servicesDict, relevantServices);
-
-    const dpCountServicesPerPerson = countServicesPerPerson(
-        events,
-        servicesDict,
-        selectedFilters.services,
-        selectedFilters.minServicesCount,
-    );
-
-    const dpCummulativePersontTime = cummulativePersonTime(
-        events,
-        selectedFilters.services,
-        selectedFilters.minServicesCount,
-    );
-
-    // Insert the charts DOM element into the placeholder
-    const chartsHTML = createChartsHTML();
-    const chartsWrapper =
-        document.querySelector<HTMLDivElement>("#chartsWrapper")!;
-    chartsWrapper.innerHTML = "";
-    chartsWrapper.append(chartsHTML);
-    const colors = getCTChartColors();
-
-    renderStackedChart(
-        "CountServicesPerPerson",
-        dpCountServicesPerPerson,
-        colors,
-    );
-    renderLineChart("CummulativePersontTime", dpCummulativePersontTime, colors);
-
-    updateEventListHTML(
-        "eventListWrapper",
-        events,
-        servicesDict,
-        selectedFilters.services,
-    );
-}
-
 function setupButtonHandler(buttonId: string, handler: () => void) {
     const button = document.getElementById(buttonId);
     if (!button) {
@@ -156,6 +45,17 @@ function setupButtonHandler(buttonId: string, handler: () => void) {
     button.replaceWith(button.cloneNode(true));
     const newButton = document.getElementById(buttonId) as HTMLButtonElement;
     newButton.addEventListener("click", handler);
+}
+
+/**
+ * Wrapper to apply new filter options
+ * @returns void
+ */
+async function submitFilterOptions(document: Document = window.document) {
+    /* retrieve filter option selectedCalendars from HTML form */
+    const selectedFilters = await parseSelectedFilterOptions(document);
+
+    console.log("Submitted Filters:", selectedFilters);
 }
 
 /** Main plugin function */
