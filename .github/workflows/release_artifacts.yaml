@@ -29,7 +29,7 @@ jobs:
               run: |
                   VERSION=${{ github.event.release.tag_name }}
                   SHORT_HASH=$(git rev-parse --short HEAD)
-                  ZIP_FILE="releases/ct-events-load-${VERSION}-${SHORT_HASH}.zip"
+                  ZIP_FILE="releases/ct-repost-${VERSION}-${SHORT_HASH}.zip"
                   mkdir -p releases
                   zip -r "$ZIP_FILE" dist/
                   echo "zip_file=$ZIP_FILE" >> $GITHUB_OUTPUT

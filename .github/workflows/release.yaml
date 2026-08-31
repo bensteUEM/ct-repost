@@ -16,5 +16,5 @@ jobs:
               id: release
               with:
                   release-type: node
-                  package-name: ct-events-load
+                  package-name: ct-repost
                   token: ${{ secrets.RELEASE_PLEASE_PAT }}
