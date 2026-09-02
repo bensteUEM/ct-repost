@@ -12,3 +12,36 @@
     padding: 10px;
     box-sizing: border-box;
 }
+
+.appointment-list {
+    display: grid;
+    gap: 12px;
+}
+
+.appointment-list_item {
+    border-left: 4px solid var(--appointment-color, #c22f93);
+    padding: 12px 16px;
+    background: #f7f7f7;
+}
+
+.appointment-list_date,
+.appointment-list_title,
+.appointment-list_subtitle {
+    display: block;
+    margin: 0;
+}
+
+.appointment-list_date {
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.appointment-list_title {
+    margin-top: 4px;
+    font-size: 1.1rem;
+}
+
+.appointment-list_subtitle {
+    margin-top: 4px;
+    color: #555;
+}

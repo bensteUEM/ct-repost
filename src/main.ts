@@ -4,7 +4,11 @@ import {
     resetFilterOptions,
     saveFilterOptions,
 } from "./filters";
-import type { Person } from "./utils/ct-types";
+import { renderCalendarAppointments } from "./calendars";
+import type {
+    AppointmentCalculatedWithIncludes,
+    Person,
+} from "./utils/ct-types";
 import { churchtoolsClient } from "@churchtools/churchtools-client";
 
 // only import reset.css in development mode
@@ -55,7 +59,19 @@ async function submitFilterOptions(document: Document = window.document) {
     /* retrieve filter option selectedCalendars from HTML form */
     const selectedFilters = await parseSelectedFilterOptions(document);
 
-    console.log("Submitted Filters:", selectedFilters);
+    const calendarAppointments = await Promise.all(
+        selectedFilters.calendars.map((calendarId) =>
+            churchtoolsClient.get<AppointmentCalculatedWithIncludes[]>(
+                `/calendars/${calendarId}/appointments?from=${selectedFilters.fromDate.toLocaleDateString(
+                    "en-ca",
+                )}&to=${selectedFilters.toDate.toLocaleDateString("en-ca")}`,
+            ),
+        ),
+    );
+
+    renderCalendarAppointments(calendarAppointments, document);
+
+    console.log("Appointments:", calendarAppointments);
 }
 
 /** Main plugin function */
@@ -68,7 +84,7 @@ async function main() {
 <div class="container d-flex flex-column align-items-center justify-content-start min-vh-100 gap-3">
     <div class="container" id="filterWrapper"></div>
     <div class="container" id="chartsWrapper"></div>
-    <div class="container" id="eventListWrapper"></div>
+    <div class="container" id="appointmentListWrapper"></div>
 </div>
 `;
 

@@ -35,6 +35,67 @@ export async function getSpecialDayName(
     return "";
 }
 
+/** Render the selected calendar appointments in the appointment list. */
+export function renderCalendarAppointments(
+    calendarAppointments: AppointmentCalculatedWithIncludes[][],
+    document: Document,
+): void {
+    const appointments = calendarAppointments
+        .flat()
+        .sort(
+            (first, second) =>
+                new Date(first.appointment.calculated.startDate).getTime() -
+                new Date(second.appointment.calculated.startDate).getTime(),
+        );
+    const appointmentListWrapper = document.querySelector<HTMLDivElement>(
+        "#appointmentListWrapper",
+    );
+
+    if (!appointmentListWrapper) {
+        return;
+    }
+
+    appointmentListWrapper.replaceChildren();
+    const appointmentList = document.createElement("div");
+    appointmentList.className = "appointment-list";
+
+    for (const appointment of appointments) {
+        const appointmentElement = document.createElement("article");
+        appointmentElement.className = "appointment-list_item";
+        appointmentElement.style.setProperty(
+            "--appointment-color",
+            appointment.appointment.base.calendar.color,
+        );
+
+        const startDate = document.createElement("time");
+        startDate.className = "appointment-list_date";
+        startDate.dateTime = appointment.appointment.calculated.startDate;
+        startDate.textContent = new Date(
+            appointment.appointment.calculated.startDate,
+        ).toLocaleString("de-DE", {
+            dateStyle: "medium",
+            timeStyle: "short",
+        });
+
+        const title = document.createElement("h2");
+        title.className = "appointment-list_title";
+        title.textContent = appointment.appointment.base.title;
+
+        appointmentElement.append(startDate, title);
+
+        if (appointment.appointment.base.subtitle) {
+            const subtitle = document.createElement("p");
+            subtitle.className = "appointment-list_subtitle";
+            subtitle.textContent = appointment.appointment.base.subtitle;
+            appointmentElement.appendChild(subtitle);
+        }
+
+        appointmentList.appendChild(appointmentElement);
+    }
+
+    appointmentListWrapper.appendChild(appointmentList);
+}
+
 /** Workaround for missing CT Type
  * see https://forum.church.tools/topic/11586/r%C3%BCckfrage-zu-calendars-appointments-rtypes
  * https://github.com/bensteUEM/ct-iframes/issues/23
@@ -58,75 +119,4 @@ export async function getCalendarAppointment(
         `/calendars/${calendarId}/appointments/${calendarAppointmentId}`,
     );
     return appointment.appointment;
-}
-
-/** This function rewrites the calendar titles and subtitle to achieve a standartization diregarding typos
- * 1. check simple matches to keywords
- * 2. check special cases to keywords
- * 3. replace keywords with fulltext versions which can be appended to title
- *
- * @param name title to rewrite
- * @param note subtitle to rewrite
- * @returns rewritten title
- */
-export async function generateCalendarTitleReplacement(
-    name: string,
-    note: string = "",
-): Promise<string> {
-    const text = name.toUpperCase() + note.toUpperCase();
-
-    //console.log("Generating title appendix for:", text);
-
-    const knownKeywords = [
-        "Abendmahl",
-        "Familien",
-        "Grünen",
-        "Konfirmation",
-        "Ökum",
-    ];
-
-    let result = "";
-
-    // 1. Check simple keywords (order matters)
-    for (const keyword of knownKeywords) {
-        if (text.includes(keyword.toUpperCase())) {
-            result = keyword;
-            break;
-        }
-    }
-
-    // 2. If none matched, check "specials"
-    if (!result) {
-        const knownSpecials: Record<string, string> = {
-            Sankenbach: "Grünen",
-            Flößerplatz: "Grünen",
-            Gartenschau: "Grünen",
-            Schelkewiese: "Grünen",
-            Wohnzimmer: "Wohnzimmer",
-            CVJM: "CVJM",
-            Impuls: "Impuls",
-        };
-
-        for (const [keyword, replacement] of Object.entries(knownSpecials)) {
-            if (text.includes(keyword.toUpperCase())) {
-                result = replacement;
-                break;
-            }
-        }
-    }
-
-    // 3. Final replacements for full text postfix
-    const fulltextReplacements: Record<string, string> = {
-        Abendmahl: "mit Abendmahl",
-        Familien: "für Familien",
-        Grünen: "im Grünen",
-        Wohnzimmer: "Wohnzimmer-Worship",
-        Ökum: "Ökumenisch",
-    };
-
-    if (fulltextReplacements[result]) {
-        result = fulltextReplacements[result];
-    }
-
-    return result;
 }
