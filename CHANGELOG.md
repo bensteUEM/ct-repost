@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/bensteUEM/ct-repost/compare/v1.0.1...v1.0.2) (2026-09-02)
+
+
+### Bug Fixes
+
+* added correct vite_key to env ([a442130](https://github.com/bensteUEM/ct-repost/commit/a44213098ed1c88914c4924452b3303805b130cc))
+
 ## [1.0.1](https://github.com/bensteUEM/ct-repost/compare/v1.0.0...v1.0.1) (2026-09-02)
 
 
