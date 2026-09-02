@@ -17,4 +17,5 @@ jobs:
               with:
                   release-type: node
                   package-name: ct-repost
+                  bootstrap-sha: 5810765ab6df6c54ea3f88fb2c242908a47eea17
                   token: ${{ secrets.RELEASE_PLEASE_PAT }}
