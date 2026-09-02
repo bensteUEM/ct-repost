@@ -1,6 +1,6 @@
 /* This module includes everything related to the filter options */
 import { getFilters, setFilters, updateFilters } from "./persistance";
-import type { Calendar } from "./utils/ct-types";
+import type { Calendar, PossiblePostGroup } from "./utils/ct-types";
 import { churchtoolsClient } from "@churchtools/churchtools-client";
 
 /**
@@ -24,6 +24,7 @@ export async function resetFilterOptions() {
     }
 
     refreshAvailableCalendars(selectedFilters?.calendars ?? []);
+    refreshAvailableGroups(selectedFilters?.postGroup);
     initDateOptions(selectedFilters?.days ?? 90);
 }
 
@@ -37,6 +38,7 @@ export async function saveFilterOptions(document: Document) {
 
     const storeableFilters = {
         calendars: selectedFilters.calendars,
+        postGroup: selectedFilters.postGroup,
         days:
             (selectedFilters.toDate.getTime() -
                 selectedFilters.fromDate.getTime()) /
@@ -56,6 +58,7 @@ export async function saveFilterOptions(document: Document) {
  */
 export async function parseSelectedFilterOptions(document: Document): Promise<{
     calendars: number[];
+    postGroup: string;
     fromDate: Date;
     toDate: Date;
 }> {
@@ -68,6 +71,12 @@ export async function parseSelectedFilterOptions(document: Document): Promise<{
     );
     console.log("Selected calendars:", selectedCalendars);
 
+    const selectPostGroup = document.getElementById(
+        "selectedPostGroup",
+    ) as HTMLSelectElement;
+    const postGroup = selectPostGroup.value;
+    console.log("Selected post group:", postGroup);
+
     /* retrieve filter options from HTML form */
     const inputFrom = document.getElementById("fromDate") as HTMLInputElement;
     const fromDate = new Date(inputFrom.value);
@@ -79,6 +88,7 @@ export async function parseSelectedFilterOptions(document: Document): Promise<{
 
     const result = {
         calendars: selectedCalendars,
+        postGroup: postGroup,
         fromDate: fromDate,
         toDate: toDate,
     };
@@ -117,6 +127,32 @@ async function refreshAvailableCalendars(selectedCalendars: number[] = []) {
         }
         selectEl.appendChild(option);
     });
+}
+
+/** Retrieve the groups where the current user is allowed to create posts. */
+export async function refreshAvailableGroups(
+    selectedPostGroup?: string,
+): Promise<PossiblePostGroup[]> {
+    const availableGroups =
+        await churchtoolsClient.get<PossiblePostGroup[]>("/post/groups");
+    console.log("Available post groups:", availableGroups);
+
+    const selectEl = document.getElementById(
+        "selectedPostGroup",
+    ) as HTMLSelectElement;
+    if (!selectEl) return availableGroups;
+
+    selectEl.innerHTML = "";
+
+    availableGroups.forEach(({ group }) => {
+        const option = document.createElement("option");
+        option.value = group.domainIdentifier;
+        option.textContent = group.title;
+        option.selected = group.domainIdentifier === selectedPostGroup;
+        selectEl.appendChild(option);
+    });
+
+    return availableGroups;
 }
 
 /**
@@ -232,6 +268,24 @@ export function createFilterHTML(): HTMLFormElement {
 
     // --- Append to parent row/container ---
     row.appendChild(dateCol);
+
+    // --- Post group select column ---
+    const groupCol = document.createElement("div");
+    groupCol.className = "order-first flex flex-col px-4 py-3 gap-2";
+
+    const groupLabel = document.createElement("label");
+    groupLabel.htmlFor = "selectedPostGroup";
+    groupLabel.className = "text-body-s-emphasized";
+    groupLabel.textContent = "Target Group";
+
+    const groupSelect = document.createElement("select");
+    groupSelect.className = "self-start";
+    groupSelect.id = "selectedPostGroup";
+    groupSelect.name = "selectedPostGroup";
+
+    groupCol.appendChild(groupLabel);
+    groupCol.appendChild(groupSelect);
+    row.appendChild(groupCol);
 
     // --- Button group ---
     const btnGroup = document.createElement("div");
