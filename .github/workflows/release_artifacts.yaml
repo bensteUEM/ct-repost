@@ -4,6 +4,9 @@ on:
     release:
         types: [created]
 
+permissions:
+    contents: write
+
 jobs:
     publish:
         runs-on: ubuntu-latest
@@ -15,7 +18,7 @@ jobs:
 
             - uses: actions/setup-node@v4
               with:
-                  node-version: 20
+                  node-version: 24
 
             - run: npm ci
 
@@ -35,7 +38,7 @@ jobs:
                   echo "zip_file=$ZIP_FILE" >> $GITHUB_OUTPUT
 
             - name: Upload asset
-              uses: softprops/action-gh-release@v1
+              uses: softprops/action-gh-release@v2
               with:
                   files: ${{ steps.zip.outputs.zip_file }}
               env:
