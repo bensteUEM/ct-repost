@@ -67,6 +67,22 @@ export function renderCalendarAppointments(
             appointment.appointment.base.calendar.color,
         );
 
+        const image = appointment.appointment.base.image;
+        const appointmentContent = document.createElement("div");
+        appointmentContent.className = "appointment-list_content";
+
+        if (image?.imageUrl || image?.fileUrl) {
+            const imageElement = document.createElement("img");
+            imageElement.className = "appointment-list_image";
+            imageElement.src = image.imageUrl || image.fileUrl;
+            imageElement.alt = appointment.appointment.base.title;
+            imageElement.loading = "lazy";
+            appointmentElement.classList.add(
+                "appointment-list_item_with-image",
+            );
+            appointmentElement.append(imageElement, appointmentContent);
+        }
+
         const startDate = document.createElement("time");
         startDate.className = "appointment-list_date";
         startDate.dateTime = appointment.appointment.calculated.startDate;
@@ -81,13 +97,17 @@ export function renderCalendarAppointments(
         title.className = "appointment-list_title";
         title.textContent = appointment.appointment.base.title;
 
-        appointmentElement.append(startDate, title);
+        appointmentContent.append(startDate, title);
 
         if (appointment.appointment.base.subtitle) {
             const subtitle = document.createElement("p");
             subtitle.className = "appointment-list_subtitle";
             subtitle.textContent = appointment.appointment.base.subtitle;
-            appointmentElement.appendChild(subtitle);
+            appointmentContent.appendChild(subtitle);
+        }
+
+        if (!image?.imageUrl && !image?.fileUrl) {
+            appointmentElement.appendChild(appointmentContent);
         }
 
         appointmentList.appendChild(appointmentElement);

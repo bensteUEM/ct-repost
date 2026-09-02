@@ -24,6 +24,24 @@
     background: #f7f7f7;
 }
 
+.appointment-list_item_with-image {
+    display: grid;
+    grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.appointment-list_image {
+    display: block;
+    width: 100%;
+    max-width: 180px;
+    height: auto;
+}
+
+.appointment-list_content {
+    min-width: 0;
+}
+
 .appointment-list_date,
 .appointment-list_title,
 .appointment-list_subtitle {
@@ -44,4 +62,15 @@
 .appointment-list_subtitle {
     margin-top: 4px;
     color: #555;
+}
+
+@media (max-width: 600px) {
+    .appointment-list_item_with-image {
+        grid-template-columns: minmax(0, 110px) minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .appointment-list_image {
+        max-width: 110px;
+    }
 }
