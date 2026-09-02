@@ -1,5 +1,6 @@
 /* This module includes everything related to the filter options */
 import { getFilters, setFilters, updateFilters } from "./persistance";
+import { refreshAvailableResources } from "./resources";
 import type { Calendar, PossiblePostGroup } from "./utils/ct-types";
 import { churchtoolsClient } from "@churchtools/churchtools-client";
 
@@ -14,6 +15,7 @@ export async function resetFilterOptions() {
         // this set of defaults only applies to ELKW1610.KRZ.TOOLS - but can be overwritten using save
         const defaultFilter = {
             calendars: [2],
+            resources: undefined,
             days: 90,
         };
         setFilters(defaultFilter);
@@ -25,6 +27,7 @@ export async function resetFilterOptions() {
 
     refreshAvailableCalendars(selectedFilters?.calendars ?? []);
     refreshAvailableGroups(selectedFilters?.postGroup);
+    refreshAvailableResources(selectedFilters?.resources);
     initDateOptions(selectedFilters?.days ?? 90);
 }
 
@@ -39,6 +42,7 @@ export async function saveFilterOptions(document: Document) {
     const storeableFilters = {
         calendars: selectedFilters.calendars,
         postGroup: selectedFilters.postGroup,
+        resources: selectedFilters.resources,
         days:
             (selectedFilters.toDate.getTime() -
                 selectedFilters.fromDate.getTime()) /
@@ -59,6 +63,7 @@ export async function saveFilterOptions(document: Document) {
 export async function parseSelectedFilterOptions(document: Document): Promise<{
     calendars: number[];
     postGroup: string;
+    resources: number[];
     fromDate: Date;
     toDate: Date;
 }> {
@@ -77,6 +82,14 @@ export async function parseSelectedFilterOptions(document: Document): Promise<{
     const postGroup = selectPostGroup.value;
     console.log("Selected post group:", postGroup);
 
+    const selectResources = document.getElementById(
+        "selectedResources",
+    ) as HTMLSelectElement;
+    const resources = Array.from(selectResources.selectedOptions).map(
+        (option) => Number(option.value),
+    );
+    console.log("Selected resources:", resources);
+
     /* retrieve filter options from HTML form */
     const inputFrom = document.getElementById("fromDate") as HTMLInputElement;
     const fromDate = new Date(inputFrom.value);
@@ -89,6 +102,7 @@ export async function parseSelectedFilterOptions(document: Document): Promise<{
     const result = {
         calendars: selectedCalendars,
         postGroup: postGroup,
+        resources: resources,
         fromDate: fromDate,
         toDate: toDate,
     };
@@ -194,7 +208,7 @@ export function createFilterHTML(): HTMLFormElement {
 
     // Heading
     const heading = document.createElement("h2");
-    heading.textContent = "Filters";
+    heading.textContent = "Optionen";
     heading.className = "text-body-l-emphasized m-0 grow";
     form.appendChild(heading);
 
@@ -269,6 +283,26 @@ export function createFilterHTML(): HTMLFormElement {
     // --- Append to parent row/container ---
     row.appendChild(dateCol);
 
+    // --- Resource select column ---
+    const resourceCol = document.createElement("div");
+    resourceCol.className = "flex flex-col px-4 py-3 gap-2";
+
+    const resourceLabel = document.createElement("label");
+    resourceLabel.htmlFor = "selectedResources";
+    resourceLabel.className = "text-body-s-emphasized";
+    resourceLabel.textContent = "Ressourcen mit Anzeigen";
+
+    const resourceSelect = document.createElement("select");
+    resourceSelect.className = "multi-select-status flex-1";
+    resourceSelect.id = "selectedResources";
+    resourceSelect.name = "selectedResources";
+    resourceSelect.multiple = true;
+    resourceSelect.size = 10;
+
+    resourceCol.appendChild(resourceLabel);
+    resourceCol.appendChild(resourceSelect);
+    row.appendChild(resourceCol);
+
     // --- Post group select column ---
     const groupCol = document.createElement("div");
     groupCol.className = "order-first flex flex-col px-4 py-3 gap-2";
@@ -276,7 +310,7 @@ export function createFilterHTML(): HTMLFormElement {
     const groupLabel = document.createElement("label");
     groupLabel.htmlFor = "selectedPostGroup";
     groupLabel.className = "text-body-s-emphasized";
-    groupLabel.textContent = "Target Group";
+    groupLabel.textContent = "Zielgruppe";
 
     const groupSelect = document.createElement("select");
     groupSelect.className = "self-start";
@@ -299,7 +333,7 @@ export function createFilterHTML(): HTMLFormElement {
         "c-button c-button__S c-button__primary rounded-sm text-body-m-emphasized " +
         "gap-2 justify-center px-4 py-2 " +
         "text-white bg-green-b-bright ";
-    btnRefresh.textContent = "Refresh";
+    btnRefresh.textContent = "Aktualisieren";
 
     // --- Save Filter button ---
     const btnSave = document.createElement("button");
@@ -309,7 +343,7 @@ export function createFilterHTML(): HTMLFormElement {
         "c-button c-button__S c-button__primary rounded-sm text-body-m-emphasized " +
         "gap-2 justify-center px-4 py-2 " +
         "text-white bg-gray-b-bright ";
-    btnSave.textContent = "Save Filter as Default";
+    btnSave.textContent = "Optionen als Standard speichern";
 
     // --- Reload Filter button ---
     const btnReload = document.createElement("button");
@@ -319,7 +353,7 @@ export function createFilterHTML(): HTMLFormElement {
         "c-button c-button__S c-button__primary rounded-sm text-body-m-emphasized " +
         "gap-2 justify-center px-4 py-2 " +
         "text-white bg-gray-b-bright ";
-    btnReload.textContent = "Reload Filter Options";
+    btnReload.textContent = "Auf gespeicherte Werte zurücksetzen";
 
     // --- Combine buttons into group ---
     btnGroup.appendChild(btnRefresh);

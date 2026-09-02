@@ -64,6 +64,12 @@
     color: #555;
 }
 
+.appointment-list_resources {
+    margin: 8px 0 0;
+    color: #555;
+    font-size: 0.9rem;
+}
+
 @media (max-width: 600px) {
     .appointment-list_item_with-image {
         grid-template-columns: minmax(0, 110px) minmax(0, 1fr);

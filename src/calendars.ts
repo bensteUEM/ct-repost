@@ -4,41 +4,11 @@ import type {
     AppointmentCalculatedWithIncludes,
 } from "./utils/ct-types";
 
-/**
- * retrieve the first availables title from a list of calendars for a specified date
- * This can be used to retrieve special day names if each day has exactly one relevant specialdayname appointment
- *
- * @param date to lookfor
- * @param calendarIds used for lookup
- * @returns title of the first appointment matching both date and calendars
- */
-export async function getSpecialDayName(
-    date: Date,
-    calendarIds: number[],
-): Promise<string> {
-    const fromToDate = date.toLocaleDateString("en-ca");
-
-    for (const calendarId of calendarIds) {
-        const response = await churchtoolsClient.get<
-            AppointmentCalculatedWithIncludes[]
-        >(
-            `/calendars/${calendarId}/appointments?from=${fromToDate}&to=${fromToDate}`,
-        );
-
-        console.log(response);
-        if (response.length > 0) {
-            const title = response[0].appointment.base.title;
-            return title;
-        }
-    }
-
-    return "";
-}
-
 /** Render the selected calendar appointments in the appointment list. */
 export function renderCalendarAppointments(
     calendarAppointments: AppointmentCalculatedWithIncludes[][],
     document: Document,
+    resourceNamesByAppointment: Map<number, string[]> = new Map(),
 ): void {
     const appointments = calendarAppointments
         .flat()
@@ -104,6 +74,16 @@ export function renderCalendarAppointments(
             subtitle.className = "appointment-list_subtitle";
             subtitle.textContent = appointment.appointment.base.subtitle;
             appointmentContent.appendChild(subtitle);
+        }
+
+        const resourceNames =
+            resourceNamesByAppointment.get(appointment.appointment.base.id) ??
+            [];
+        if (resourceNames.length > 0) {
+            const resourceList = document.createElement("p");
+            resourceList.className = "appointment-list_resources";
+            resourceList.textContent = `Ort: ${resourceNames.join(", ")}`;
+            appointmentContent.appendChild(resourceList);
         }
 
         if (!image?.imageUrl && !image?.fileUrl) {

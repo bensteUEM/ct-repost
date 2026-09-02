@@ -18,6 +18,7 @@ export interface FilterValueData {
     selected: {
         calendars: number[];
         postGroup?: string;
+        resources?: number[];
         days: number;
     };
 }
@@ -47,6 +48,7 @@ export async function resetStoredCategories(): Promise<boolean> {
                     properties: {
                         calendars: { type: "array", items: { type: "number" } },
                         postGroup: { type: "string" },
+                        resources: { type: "array", items: { type: "number" } },
                         days: { type: "number" },
                     },
                     required: ["calendars", "days"],
@@ -76,6 +78,7 @@ export async function setFilters(
     selected: {
         calendars: number[];
         postGroup?: string;
+        resources?: number[];
         days: number;
     },
     userId?: number,
@@ -109,6 +112,7 @@ export async function updateFilters(
     selected: {
         calendars: number[];
         postGroup?: string;
+        resources?: number[];
         days: number;
     },
     userId?: number,
@@ -157,6 +161,7 @@ export async function updateFilters(
 export async function getFilters(userId?: number): Promise<{
     calendars: number[];
     postGroup?: string;
+    resources?: number[];
     days: number;
 } | null> {
     if (!userId) {

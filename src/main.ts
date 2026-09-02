@@ -5,6 +5,7 @@ import {
     saveFilterOptions,
 } from "./filters";
 import { renderCalendarAppointments } from "./calendars";
+import { getResourceNamesByAppointment } from "./resources";
 import type {
     AppointmentCalculatedWithIncludes,
     Person,
@@ -69,7 +70,19 @@ async function submitFilterOptions(document: Document = window.document) {
         ),
     );
 
-    renderCalendarAppointments(calendarAppointments, document);
+    const resourceNamesByAppointment = await getResourceNamesByAppointment(
+        selectedFilters.fromDate,
+        selectedFilters.toDate,
+        selectedFilters.resources,
+    );
+
+    console.log("Resource Names by Appointment:", resourceNamesByAppointment);
+
+    renderCalendarAppointments(
+        calendarAppointments,
+        document,
+        resourceNamesByAppointment,
+    );
 
     console.log("Appointments:", calendarAppointments);
 }
