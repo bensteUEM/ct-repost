@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/bensteUEM/ct-repost/compare/v1.0.0...v1.0.1) (2026-09-02)
+
+
+### Bug Fixes
+
+* updated release automation ([0ebb706](https://github.com/bensteUEM/ct-repost/commit/0ebb70607d6e45b425ad8d12446524a935350865))
+
 ## 1.0.0 (2026-09-02)
 
 
