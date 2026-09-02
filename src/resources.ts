@@ -1,12 +1,15 @@
 import { churchtoolsClient } from "@churchtools/churchtools-client";
 import type { BookingCalculatedWithIncludes, Resource } from "./utils/ct-types";
 
+let availableResourcesCache: Resource[] | undefined;
+
 /** Retrieve available resources and populate the resource filter. */
 export async function refreshAvailableResources(
     selectedResources?: number[],
 ): Promise<Resource[]> {
     const availableResources =
         await churchtoolsClient.get<Resource[]>("/resources");
+    availableResourcesCache = availableResources;
     const selectEl = document.getElementById(
         "selectedResources",
     ) as HTMLSelectElement | null;
@@ -38,7 +41,9 @@ export async function getResourceNamesByAppointment(
     selectedResources?: number[],
 ): Promise<Map<number, string[]>> {
     const availableResources =
-        await churchtoolsClient.get<Resource[]>("/resources");
+        availableResourcesCache ??
+        (await churchtoolsClient.get<Resource[]>("/resources"));
+    availableResourcesCache = availableResources;
     const resourceIds =
         selectedResources ?? availableResources.map((resource) => resource.id);
     if (resourceIds.length === 0) {

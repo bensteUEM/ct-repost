@@ -167,7 +167,7 @@ async function main() {
     setupButtonHandler("resetFilterBtn", () => resetFilterOptions());
     setupButtonHandler("saveFilterBtn", () => saveFilterOptions(document));
     setupButtonHandler("submitFilterBtn", () => submitFilterOptions());
-    resetFilterOptions();
+    await resetFilterOptions();
 }
 
 main();

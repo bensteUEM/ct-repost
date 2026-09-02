@@ -48,19 +48,16 @@ export async function resetStoredCategories(): Promise<boolean> {
         properties: {
             userId: { type: ["string", "number"] },
             selected: {
-                type: "array",
-                items: {
-                    type: "object",
-                    properties: {
-                        calendars: { type: "array", items: { type: "number" } },
-                        postGroup: { type: "string" },
-                        resources: { type: "array", items: { type: "number" } },
-                        visibility: { type: "string" },
-                        skipDraft: { type: "boolean" },
-                        days: { type: "number" },
-                    },
-                    required: ["calendars", "days"],
+                type: "object",
+                properties: {
+                    calendars: { type: "array", items: { type: "number" } },
+                    postGroup: { type: "string" },
+                    resources: { type: "array", items: { type: "number" } },
+                    visibility: { type: "string" },
+                    skipDraft: { type: "boolean" },
+                    days: { type: "number" },
                 },
+                required: ["calendars", "days"],
             },
         },
         required: ["userId", "selected"],

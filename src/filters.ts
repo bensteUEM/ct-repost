@@ -31,9 +31,11 @@ export async function resetFilterOptions() {
         console.log("Using stored filters:", selectedFilters);
     }
 
-    refreshAvailableCalendars(selectedFilters?.calendars ?? []);
-    refreshAvailableGroups(selectedFilters?.postGroup);
-    refreshAvailableResources(selectedFilters?.resources);
+    await Promise.all([
+        refreshAvailableCalendars(selectedFilters?.calendars ?? []),
+        refreshAvailableGroups(selectedFilters?.postGroup),
+        refreshAvailableResources(selectedFilters?.resources),
+    ]);
     const visibilityToggle = document.getElementById(
         "selectedVisibility",
     ) as HTMLInputElement | null;
