@@ -4795,6 +4795,7 @@ export type PostCommentCreate = {
 
 export type PostCreate = PostBase & {
     commentsActive?: boolean;
+    draft?: boolean;
     groupId: number;
     imageIds?: Array<number>;
 };

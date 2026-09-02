@@ -70,6 +70,12 @@
     font-size: 0.9rem;
 }
 
+.appointment-list_post-button {
+    display: block;
+    margin-top: 12px;
+    margin-left: auto;
+}
+
 @media (max-width: 600px) {
     .appointment-list_item_with-image {
         grid-template-columns: minmax(0, 110px) minmax(0, 1fr);

@@ -5,10 +5,12 @@ import {
     saveFilterOptions,
 } from "./filters";
 import { renderCalendarAppointments } from "./calendars";
+import { createPostFromAppointment } from "./posts";
 import { getResourceNamesByAppointment } from "./resources";
 import type {
     AppointmentCalculatedWithIncludes,
     Person,
+    PostVisibility,
 } from "./utils/ct-types";
 import { churchtoolsClient } from "@churchtools/churchtools-client";
 
@@ -52,6 +54,28 @@ function setupButtonHandler(buttonId: string, handler: () => void) {
     newButton.addEventListener("click", handler);
 }
 
+function getCurrentPostOptions(document: Document): {
+    postGroup: string;
+    visibility: PostVisibility;
+    skipDraft: boolean;
+} {
+    const postGroup = (
+        document.getElementById("selectedPostGroup") as HTMLSelectElement
+    ).value;
+    const visibilityToggle = document.getElementById(
+        "selectedVisibility",
+    ) as HTMLInputElement;
+    const skipDraftToggle = document.getElementById(
+        "selectedSkipDraft",
+    ) as HTMLInputElement;
+
+    return {
+        postGroup,
+        visibility: visibilityToggle.checked ? "group_visible" : "group_intern",
+        skipDraft: skipDraftToggle.checked,
+    };
+}
+
 /**
  * Wrapper to apply new filter options
  * @returns void
@@ -82,6 +106,16 @@ async function submitFilterOptions(document: Document = window.document) {
         calendarAppointments,
         document,
         resourceNamesByAppointment,
+        (appointment) => {
+            const postOptions = getCurrentPostOptions(document);
+            return createPostFromAppointment(
+                appointment,
+                postOptions.postGroup,
+                resourceNamesByAppointment,
+                postOptions.visibility,
+                postOptions.skipDraft,
+            );
+        },
     );
 
     console.log("Appointments:", calendarAppointments);

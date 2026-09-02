@@ -1,7 +1,11 @@
 /* This module includes everything related to the filter options */
 import { getFilters, setFilters, updateFilters } from "./persistance";
 import { refreshAvailableResources } from "./resources";
-import type { Calendar, PossiblePostGroup } from "./utils/ct-types";
+import type {
+    Calendar,
+    PossiblePostGroup,
+    PostVisibility,
+} from "./utils/ct-types";
 import { churchtoolsClient } from "@churchtools/churchtools-client";
 
 /**
@@ -16,6 +20,8 @@ export async function resetFilterOptions() {
         const defaultFilter = {
             calendars: [2],
             resources: undefined,
+            visibility: "group_visible" as PostVisibility,
+            skipDraft: true,
             days: 90,
         };
         setFilters(defaultFilter);
@@ -28,7 +34,44 @@ export async function resetFilterOptions() {
     refreshAvailableCalendars(selectedFilters?.calendars ?? []);
     refreshAvailableGroups(selectedFilters?.postGroup);
     refreshAvailableResources(selectedFilters?.resources);
+    const visibilityToggle = document.getElementById(
+        "selectedVisibility",
+    ) as HTMLInputElement | null;
+    if (visibilityToggle) {
+        visibilityToggle.checked =
+            selectedFilters?.visibility !== "group_intern";
+        updateVisibilityLabel(visibilityToggle);
+    }
+    const skipDraftToggle = document.getElementById(
+        "selectedSkipDraft",
+    ) as HTMLInputElement | null;
+    if (skipDraftToggle) {
+        skipDraftToggle.checked = selectedFilters?.skipDraft ?? true;
+        updateSkipDraftLabel(skipDraftToggle);
+    }
     initDateOptions(selectedFilters?.days ?? 90);
+}
+
+function updateVisibilityLabel(visibilityToggle: HTMLInputElement): void {
+    const visibilityDescription = document.querySelector<HTMLLabelElement>(
+        'label[for="selectedVisibility"][data-visibility-description]',
+    );
+    if (visibilityDescription) {
+        visibilityDescription.textContent = visibilityToggle.checked
+            ? "alle die die Gruppe sehen können"
+            : "nur Gruppenmitglieder";
+    }
+}
+
+function updateSkipDraftLabel(skipDraftToggle: HTMLInputElement): void {
+    const draftDescription = document.querySelector<HTMLLabelElement>(
+        'label[for="selectedSkipDraft"][data-draft-description]',
+    );
+    if (draftDescription) {
+        draftDescription.textContent = skipDraftToggle.checked
+            ? "Direkt veröffentlichen"
+            : "Nur als Entwurf";
+    }
 }
 
 /**
@@ -43,6 +86,8 @@ export async function saveFilterOptions(document: Document) {
         calendars: selectedFilters.calendars,
         postGroup: selectedFilters.postGroup,
         resources: selectedFilters.resources,
+        visibility: selectedFilters.visibility,
+        skipDraft: selectedFilters.skipDraft,
         days:
             (selectedFilters.toDate.getTime() -
                 selectedFilters.fromDate.getTime()) /
@@ -64,6 +109,8 @@ export async function parseSelectedFilterOptions(document: Document): Promise<{
     calendars: number[];
     postGroup: string;
     resources: number[];
+    visibility: PostVisibility;
+    skipDraft: boolean;
     fromDate: Date;
     toDate: Date;
 }> {
@@ -90,6 +137,20 @@ export async function parseSelectedFilterOptions(document: Document): Promise<{
     );
     console.log("Selected resources:", resources);
 
+    const visibilityToggle = document.getElementById(
+        "selectedVisibility",
+    ) as HTMLInputElement;
+    const visibility: PostVisibility = visibilityToggle.checked
+        ? "group_visible"
+        : "group_intern";
+    console.log("Selected post visibility:", visibility);
+
+    const skipDraftToggle = document.getElementById(
+        "selectedSkipDraft",
+    ) as HTMLInputElement;
+    const skipDraft = skipDraftToggle.checked;
+    console.log("Skip draft:", skipDraft);
+
     /* retrieve filter options from HTML form */
     const inputFrom = document.getElementById("fromDate") as HTMLInputElement;
     const fromDate = new Date(inputFrom.value);
@@ -103,6 +164,8 @@ export async function parseSelectedFilterOptions(document: Document): Promise<{
         calendars: selectedCalendars,
         postGroup: postGroup,
         resources: resources,
+        visibility: visibility,
+        skipDraft: skipDraft,
         fromDate: fromDate,
         toDate: toDate,
     };
@@ -319,6 +382,59 @@ export function createFilterHTML(): HTMLFormElement {
 
     groupCol.appendChild(groupLabel);
     groupCol.appendChild(groupSelect);
+
+    // --- Post visibility toggle ---
+
+    const visibilityLabel = document.createElement("label");
+    visibilityLabel.htmlFor = "selectedVisibility";
+    visibilityLabel.className = "text-body-s-emphasized";
+    visibilityLabel.textContent = "Post sichtbar für";
+
+    const visibilityToggle = document.createElement("input");
+    visibilityToggle.type = "checkbox";
+    visibilityToggle.id = "selectedVisibility";
+    visibilityToggle.name = "selectedVisibility";
+    visibilityToggle.checked = true;
+
+    const visibilityDescription = document.createElement("label");
+    visibilityDescription.htmlFor = "selectedVisibility";
+    visibilityDescription.dataset.visibilityDescription = "true";
+    visibilityDescription.textContent = "Alle die die Gruppe sehen können";
+    visibilityToggle.addEventListener("change", () =>
+        updateVisibilityLabel(visibilityToggle),
+    );
+
+    groupCol.appendChild(visibilityLabel);
+    groupCol.appendChild(visibilityToggle);
+    groupCol.appendChild(visibilityDescription);
+
+    // --- Draft-only toggle ---
+    // TODO https://github.com/bensteUEM/ct-repost/issues/13
+    const draftLabel = document.createElement("label");
+    draftLabel.htmlFor = "selectedSkipDraft";
+    draftLabel.className = "text-body-s-emphasized";
+    draftLabel.textContent = "Veröffentlichung";
+    draftLabel.hidden = true;
+
+    const draftToggle = document.createElement("input");
+    draftToggle.type = "checkbox";
+    draftToggle.id = "selectedSkipDraft";
+    draftToggle.name = "selectedSkipDraft";
+    draftToggle.checked = true;
+    draftToggle.hidden = true;
+
+    const draftDescription = document.createElement("label");
+    draftDescription.htmlFor = "selectedSkipDraft";
+    draftDescription.dataset.draftDescription = "true";
+    draftDescription.textContent = "Direkt veröffentlichen";
+    draftDescription.hidden = true;
+    draftToggle.addEventListener("change", () =>
+        updateSkipDraftLabel(draftToggle),
+    );
+
+    groupCol.appendChild(draftLabel);
+    groupCol.appendChild(draftToggle);
+    groupCol.appendChild(draftDescription);
     row.appendChild(groupCol);
 
     // --- Button group ---

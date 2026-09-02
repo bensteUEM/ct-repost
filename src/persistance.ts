@@ -1,7 +1,11 @@
 /** Persisting values with KV-store usage **/
 
 import { churchtoolsClient } from "@churchtools/churchtools-client";
-import type { CustomModuleDataCategory, Person } from "./utils/ct-types";
+import type {
+    CustomModuleDataCategory,
+    Person,
+    PostVisibility,
+} from "./utils/ct-types";
 import {
     createCustomDataCategory,
     createCustomDataValue,
@@ -19,6 +23,8 @@ export interface FilterValueData {
         calendars: number[];
         postGroup?: string;
         resources?: number[];
+        visibility?: PostVisibility;
+        skipDraft?: boolean;
         days: number;
     };
 }
@@ -49,6 +55,8 @@ export async function resetStoredCategories(): Promise<boolean> {
                         calendars: { type: "array", items: { type: "number" } },
                         postGroup: { type: "string" },
                         resources: { type: "array", items: { type: "number" } },
+                        visibility: { type: "string" },
+                        skipDraft: { type: "boolean" },
                         days: { type: "number" },
                     },
                     required: ["calendars", "days"],
@@ -79,6 +87,8 @@ export async function setFilters(
         calendars: number[];
         postGroup?: string;
         resources?: number[];
+        visibility?: PostVisibility;
+        skipDraft?: boolean;
         days: number;
     },
     userId?: number,
@@ -113,6 +123,8 @@ export async function updateFilters(
         calendars: number[];
         postGroup?: string;
         resources?: number[];
+        visibility?: PostVisibility;
+        skipDraft?: boolean;
         days: number;
     },
     userId?: number,
@@ -162,6 +174,8 @@ export async function getFilters(userId?: number): Promise<{
     calendars: number[];
     postGroup?: string;
     resources?: number[];
+    visibility?: PostVisibility;
+    skipDraft?: boolean;
     days: number;
 } | null> {
     if (!userId) {

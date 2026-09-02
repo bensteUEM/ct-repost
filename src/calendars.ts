@@ -9,6 +9,9 @@ export function renderCalendarAppointments(
     calendarAppointments: AppointmentCalculatedWithIncludes[][],
     document: Document,
     resourceNamesByAppointment: Map<number, string[]> = new Map(),
+    createPost?: (
+        appointment: AppointmentCalculatedWithIncludes,
+    ) => Promise<void>,
 ): void {
     const appointments = calendarAppointments
         .flat()
@@ -84,6 +87,29 @@ export function renderCalendarAppointments(
             resourceList.className = "appointment-list_resources";
             resourceList.textContent = `Ort: ${resourceNames.join(", ")}`;
             appointmentContent.appendChild(resourceList);
+        }
+
+        if (createPost) {
+            const postButton = document.createElement("button");
+            postButton.type = "button";
+            postButton.className =
+                "appointment-list_post-button c-button c-button__S c-button__primary " +
+                "rounded-sm text-body-m-emphasized gap-2 justify-center px-4 py-2 " +
+                "text-white bg-blue-bright";
+            postButton.textContent = "Post erstellen";
+            postButton.addEventListener("click", async () => {
+                postButton.disabled = true;
+                postButton.textContent = "Wird erstellt...";
+                try {
+                    await createPost(appointment);
+                    postButton.textContent = "Erstellt";
+                } catch (error) {
+                    console.error("Could not create post:", error);
+                    postButton.disabled = false;
+                    postButton.textContent = "Post erstellen";
+                }
+            });
+            appointmentContent.appendChild(postButton);
         }
 
         if (!image?.imageUrl && !image?.fileUrl) {
